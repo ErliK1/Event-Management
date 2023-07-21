@@ -28,10 +28,15 @@ class Event(models.Model):
 class Perdorues(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-class PerdoruesJoinsEvent(models.Model):
-    perdorues = models.OneToOneField(Perdorues, on_delete=models.CASCADE)
-    event = models.OneToOneField(Event, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.user.__str__()
 
+class PerdoruesJoinsEvent(models.Model):
+    perdorues = models.ForeignKey(Perdorues, on_delete=models.CASCADE, unique=False)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, unique=False)
+
+    class Meta:
+        unique_together = ('perdorues', 'event',)
     def __str__(self):
         return self.perdorues.__str__() + ' ' + self.event.__str__()
 

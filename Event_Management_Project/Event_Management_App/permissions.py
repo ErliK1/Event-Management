@@ -20,3 +20,13 @@ class CreateEventPermission(BasePermission):
         print(manager)
         return True
 
+class JoinEventPerdoruesPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        try:
+            perdorues = Perdorues.objects.get(user__username=request.user)
+        except Exception as e:
+            print(e)
+            print('Not a Perdorues!!!')
+            return False
+        return True

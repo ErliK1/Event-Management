@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Manager, Perdorues, Event, PerdoruesJoinsEvent
+from django.contrib.auth.hashers import make_password
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -38,7 +39,8 @@ class PerdoruesSignUpSerializer(serializers.ModelSerializer):
         print(validated_data)
         user_details = dict(validated_data.pop('user'))
         print(user_details)
-        user = User.objects.create(is_active=True, **user_details)
+        user_password = user_details.pop('password')
+        user = User.objects.create(is_active=True, password=make_password(user_password), **user_details)
         perdorues = Perdorues.objects.create(user=user)
         return perdorues
 
@@ -61,3 +63,30 @@ class AllEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
+
+class EventTitleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+
+class PerdoruesSerializer(serializers.ModelSerializer):
+
+    user = serializers.StringRelatedField()
+    class Meta:
+        model = Perdorues
+        fields = '__all__'
+
+class PerdoruesJoinsEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PerdoruesJoinsEvent
+        fields = ('event', )
+
+class ManagerChecksRegisteredPerdoruesSerializer(serializers.ModelSerializer):
+
+    perdorues = serializers.StringRelatedField()
+    class Meta:
+        model = PerdoruesJoinsEvent
+        fields = ('perdorues', )
