@@ -11,12 +11,15 @@ from rest_framework import status
 from django.core import serializers as _ser
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
+
+
 # Create your views here.
 
 
 class EventListView(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = EventListSerializer
+
 
 class PerdoruesSignUpView(generics.CreateAPIView):
     queryset = Perdorues.objects.all()
@@ -26,7 +29,7 @@ class PerdoruesSignUpView(generics.CreateAPIView):
 class EventCreatedByManager(generics.CreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventCreateSerializer
-    permission_classes = (CreateEventPermission, )
+    permission_classes = (CreateEventPermission,)
 
     def create(self, request, *args, **kwargs):
         username = request.user
@@ -40,8 +43,9 @@ class EventCreatedByManager(generics.CreateAPIView):
         datetime_object = datetime.strptime(event_time, '%Y-%m-%dT%H:%M')
         print(datetime_object)
         print(datetime.now())
-        if(datetime_object < datetime.now()):
-            return Response({'message': 'DATE/TIME is earlier than the actual time!'}, status=status.HTTP_400_BAD_REQUEST)
+        if (datetime_object < datetime.now()):
+            return Response({'message': 'DATE/TIME is earlier than the actual time!'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         event_serializer = EventCreateSerializer(data=request.data)
         if event_serializer.is_valid():
@@ -64,21 +68,23 @@ class ManagerCheckPerdoruesRegistered(APIView):
             manager = Manager.objects.get(user__username=request.user)
         except Exception as e:
             print(e)
-            return Response({'message': 'ERROR, NO EVENT REGISTERED OR NO PREMISSION'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'ERROR, NO EVENT REGISTERED OR NO PREMISSION'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        print(request.query_params)
         print(PerdoruesJoinsEvent.objects.all())
-        perdorues_joins_events = PerdoruesJoinsEvent.objects.filter(event__title__contains=event, event__manager=manager)
+        perdorues_joins_events = PerdoruesJoinsEvent.objects.filter(event__title__contains=event,
+                                                                    event__manager=manager)
         print(perdorues_joins_events)
         print(event)
-        perdorues_joins_events_serializer = ManagerChecksRegisteredPerdoruesSerializer(perdorues_joins_events, many=True)
+        perdorues_joins_events_serializer = ManagerChecksRegisteredPerdoruesSerializer(perdorues_joins_events,
+                                                                                       many=True)
         return Response(perdorues_joins_events_serializer.data, status=status.HTTP_200_OK)
-
-
 
 
 class PerdoruesJoinsEventsView(generics.CreateAPIView):
     queryset = PerdoruesJoinsEvent.objects.all()
     serializer_class = PerdoruesJoinsEventSerializer
-    permission_classes = (JoinEventPerdoruesPermission, IsAuthenticated, )
+    permission_classes = (JoinEventPerdoruesPermission, IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         try:
@@ -113,7 +119,7 @@ class PerdoruesJoinsEventsView(generics.CreateAPIView):
 class LogInPerdoruesView(generics.CreateAPIView):
     queryset = Perdorues.objects.all()
     serializer_class = PerdoruesLogInSerializer
-    permission_classes = (LogInPermission, )
+    permission_classes = (LogInPermission,)
 
     def post(self, request, *args, **kwargs):
         print(request.data)
@@ -129,6 +135,37 @@ class LogInPerdoruesView(generics.CreateAPIView):
                 return Response({'message': 'Logged in Successfully'}, status=status.HTTP_200_OK)
             return Response({'message': 'Password not Correct'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Username not Correct'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PerdoruesUpdater(generics.RetrieveUpdateAPIView):
+    queryset = Perdorues.objects.all()
+    serializer_class = PerdoruesLogInSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            print(kwargs)
+            perdorues = Perdorues.objects.get(user_id__exact=kwargs.get('pk'))
+        except Exception as e:
+            print('Error')
+            return Response({'message': 'ERROR! NOT FOUND'}, status=status.HTTP_400_BAD_REQUEST)
+        perdorues_serializer = PerdoruesLogInSerializer(perdorues)
+        print(perdorues_serializer.data)
+        return Response({
+            'username': perdorues_serializer.data['user']['username'],
+            'email': perdorues_serializer.data['user']['email'],
+        }, status=status.HTTP_200_OK)
+
+
+    def update(self, request, *args, **kwargs):
+        try:
+            perdorues = Perdorues.objects.get(user__id=kwargs['pk'])
+        except Exception as e:
+            return Response({'message': 'Not Found!!'}, status=status.HTTP_400_BAD_REQUEST)
+        perdorues_serializer = PerdoruesLogInSerializer(perdorues, data=request.data)
+        if perdorues_serializer.is_valid():
+            perdorues_serializer.save()
+            return Response(perdorues_serializer.data, status=status.HTTP_200_OK)
+        return Response(perdorues_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
