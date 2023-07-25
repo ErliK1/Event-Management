@@ -8,5 +8,6 @@ urlpatterns=[
     path('event/create/', views.EventCreatedByManager.as_view(), name='Event Form'),
     path('event/<int:pk>/', views.ManagerCheckPerdoruesRegistered.as_view(), name='Event Check'),
     path('perdorues/joins/event', views.PerdoruesJoinsEventsView.as_view(), name='Event Check'),
+    path('perdorues/login/', views.LogInPerdoruesView.as_view(), name='Perdorues Log In'),
 
 ]

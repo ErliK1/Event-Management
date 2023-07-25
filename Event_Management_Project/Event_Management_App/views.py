@@ -10,6 +10,7 @@ from .permissions import *
 from rest_framework import status
 from django.core import serializers as _ser
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password
 # Create your views here.
 
 
@@ -109,8 +110,25 @@ class PerdoruesJoinsEventsView(generics.CreateAPIView):
         return Response(perdorues_joins_event.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class LogInPerdoruesView(generics.CreateAPIView):
+    queryset = Perdorues.objects.all()
+    serializer_class = PerdoruesLogInSerializer
+    permission_classes = (LogInPermission, )
 
-
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        username = request.data['user.username']
+        perdorues_partial = Perdorues.objects.filter(user__username=username)
+        if perdorues_partial:
+            try:
+                user = User.objects.get(username=username)
+            except Exception as e:
+                return Response({'message': 'Something Went Wrong'})
+            if user.check_password(raw_password=request.data['user.password']):
+                request.user = user
+                return Response({'message': 'Logged in Successfully'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Password not Correct'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Username not Correct'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

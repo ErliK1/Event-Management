@@ -90,3 +90,10 @@ class ManagerChecksRegisteredPerdoruesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerdoruesJoinsEvent
         fields = ('perdorues', )
+
+class PerdoruesLogInSerializer(serializers.ModelSerializer):
+
+    user = UserSerializer()
+    class Meta:
+        model = Perdorues
+        fields = '__all__'
